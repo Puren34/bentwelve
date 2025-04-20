@@ -1,21 +1,21 @@
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-pink-100">
-      {/* Header */}
-      <div className="bg-pink-300 text-center py-6">
-        <h1 className="text-3xl font-bold mb-1">Get In Touch</h1>
-        <p className="text-sm">
-          If you had a question, feel free to leave a message to us!
-        </p>
-      </div>
+    <div
+      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/customers/your-flower-image.jpg')" }}
+    >
+      {/* Container Form */}
+      <div className="w-full min-h-screen flex justify-center items-center py-12 px-4">
+        <div className="bg-white bg-opacity-50 max-w-3xl w-full p-6 rounded-lg shadow-md">
+          {/* Judul */}
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold mb-1">Get In Touch</h1>
+            <p className="text-sm">
+              If you had a question, feel free to leave a message to us!
+            </p>
+          </div>
 
-      {/* Full-Width Background Section */}
-      <div
-        className="w-full bg-cover bg-center py-12 px-4"
-        style={{ backgroundImage: "url('/your-flower-image.jpg')" }}
-      >
-        {/* Semi-transparent Form Container */}
-        <div className="bg-white bg-opacity-80 max-w-3xl mx-auto p-6 rounded-lg shadow-md">
+          {/* Form */}
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Full Name *</label>
@@ -50,17 +50,17 @@ export default function ContactPage() {
                 placeholder="Write your message here..."
               ></textarea>
             </div>
-          </form>
 
-          {/* Tombol di kanan bawah */}
-          <div className="text-right mt-4">
-            <button
-              type="submit"
-              className="bg-pink-400 text-white px-6 py-2 rounded-md hover:bg-pink-500 transition"
-            >
-              Send
-            </button>
-          </div>
+            {/* Tombol Submit */}
+            <div className="text-right mt-4">
+              <button
+                type="submit"
+                className="bg-pink-400 text-white px-6 py-2 rounded-md hover:bg-pink-500 transition"
+              >
+                Send
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

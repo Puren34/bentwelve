@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import Image from 'next/image';
@@ -7,14 +5,32 @@ import { useState } from 'react';
 
 const carouselItems = [
   {
-    image: '/pedo.jpg',
-    alt: 'Decoration',
-    heading: 'Decoration',
-    subheading: 'Dekorasi Elegan Untuk Berbagai Acara',
+    image: '/bunga.png',
+    alt: 'Description',
+    heading: 'FlowerScotch',
+    subheading: 'Est. 2020',
     subheadingColor: 'text-pink-400',
     description:
-      'Make special moments more memorable with floral decorations for weddings, formal events, and intimate celebrations.',
+      'Elegant flower arrangements with a touch of luxury for every special moment. Bring beauty to every occasion! 🌸✨',
   },
+  {
+    image: '/decor.png',
+    alt: 'Bouquet',
+    heading: 'Bouquet & Fresh Flower',
+    subheading: '🌟 Fresh Bouquet & Roses',
+    subheadingColor: 'text-yellow-400',
+    description: 'From roses to exotic flowers, we bring you the best for every occasion.',
+  },
+
+  {
+    image: '/Kucing.png',
+    alt: 'Bouquet',
+    heading: 'Event & Workshop',
+    subheading: '🌟 Fresh Bouquet & Roses',
+    subheadingColor: 'text-yellow-400',
+    description: 'From roses to exotic flowers, we bring you the best for every occasion.',
+  },
+
   {
     image: '/Kucing.png',
     alt: 'Bouquet',
@@ -23,6 +39,7 @@ const carouselItems = [
     subheadingColor: 'text-yellow-400',
     description: 'From roses to exotic flowers, we bring you the best for every occasion.',
   },
+
 ];
 
 export default function FlowersPage() {

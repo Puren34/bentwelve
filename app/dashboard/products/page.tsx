@@ -50,7 +50,7 @@ const products = [
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-
+  
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );

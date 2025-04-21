@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const carouselItems = [
   {
@@ -21,29 +21,37 @@ const carouselItems = [
     subheadingColor: 'text-yellow-400',
     description: 'From roses to exotic flowers, we bring you the best for every occasion.',
   },
-
   {
-    image: '/Kucing.png',
+    image: '/workshop.png',
     alt: 'Bouquet',
     heading: 'Event & Workshop',
     subheading: '🌟 Fresh Bouquet & Roses',
     subheadingColor: 'text-yellow-400',
     description: 'From roses to exotic flowers, we bring you the best for every occasion.',
   },
-
   {
-    image: '/Kucing.png',
+    image: '/flowers.png',
     alt: 'Bouquet',
     heading: 'Bouquet & Fresh Flower',
     subheading: '🌟 Fresh Bouquet & Roses',
     subheadingColor: 'text-yellow-400',
     description: 'From roses to exotic flowers, we bring you the best for every occasion.',
   },
-
 ];
 
 export default function FlowersPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto-slide setiap 5 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) =>
+        prevIndex === carouselItems.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handlePrev = () => {
     setCurrentIndex((prevIndex) =>
@@ -59,6 +67,13 @@ export default function FlowersPage() {
 
   return (
     <div className="bg-white">
+      {/* Welcome Text with Fade In */}
+      <div className="text-center py-8">
+        <h1 className="text-4xl font-bold text-gray-800 animate-fade-in">
+          Welcome to our Store
+        </h1>
+      </div>
+
       {/* Carousel Section */}
       <section className="relative flex flex-col md:flex-row justify-center gap-6 p-6">
         <button
@@ -108,21 +123,21 @@ export default function FlowersPage() {
         </p>
         <div className="flex justify-center gap-6 mt-8">
           <Image
-            src="/pedo.jpg"
+            src="/f1.png"
             alt="Bouquet 1"
             width={150}
             height={150}
             className="rounded-lg"
           />
           <Image
-            src="/pedo.jpg"
+            src="/f2.png"
             alt="Bouquet 2"
             width={150}
             height={150}
             className="rounded-lg"
           />
           <Image
-            src="/pedo.jpg"
+            src="/f3.png"
             alt="Bouquet 3"
             width={150}
             height={150}
@@ -141,7 +156,7 @@ export default function FlowersPage() {
           <button className="mt-6 bg-gray-800 text-white px-6 py-2 rounded-full">Maps</button>
         </div>
         <Image
-          src="/Kucing.pg"
+          src="/place.png"
           alt="Shop Location"
           width={300}
           height={200}

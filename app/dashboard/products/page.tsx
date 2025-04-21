@@ -8,7 +8,7 @@ const products = [
   {
     id: 1,
     name: "Flower",
-    price: 120,
+    price: 120.000,
     category: "Poppy - Based",
     image: "/bunga/bunga1.png",
   },

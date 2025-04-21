@@ -17,26 +17,26 @@ const carouselItems = [
   {
     image: '/decor.png',
     alt: 'Bouquet',
-    heading: 'Bouquet & Fresh Flower',
-    subheading: '🌟 Fresh Bouquet & Roses',
-    subheadingColor: 'text-yellow-400',
-    description: 'From roses to exotic flowers, we bring you the best for every occasion.',
+    heading: 'Decoration',
+    subheading: '🎀 Elegant Decoration for Various Events',
+    subheadingColor: 'text-red-400',
+    description: 'Make special moments more memorable with floral decorations for weddings, formal events, and intimate celebrations.',
   },
   {
     image: '/workshop.png',
     alt: 'Bouquet',
     heading: 'Event & Workshop',
-    subheading: '🌟 Fresh Bouquet & Roses',
-    subheadingColor: 'text-yellow-400',
-    description: 'From roses to exotic flowers, we bring you the best for every occasion.',
+    subheading: '🌿 Learn to Arrange Flowers',
+    subheadingColor: 'text-green-400',
+    description: 'Join an exclusive workshop from Flowerscotchs and learn how to create beautiful bouquets with professional techniques.',
   },
   {
     image: '/flowers.png',
     alt: 'Bouquet',
     heading: 'Bouquet & Fresh Flower',
-    subheading: '🌟 Fresh Bouquet & Roses',
-    subheadingColor: 'text-yellow-400',
-    description: 'From roses to exotic flowers, we bring you the best for every occasion.',
+    subheading: '💐 Fresh Bouquet & Flower Collection',
+    subheadingColor: 'text-blue-400',
+    description: 'From roses to exotic flowers, we bring you beautiful bouquets crafted with love for every occasion.',
   },
 ];
 
@@ -70,8 +70,8 @@ export default function FlowersPage() {
     <div className="">
       {/* Welcome Text with Fade In */}
       <div className="text-center py-8">
-        <h1 className="text-4xl font-bold text-gray-800 animate-fade-in">
-          <Welcome/>
+        <h1 className="text-4xl font-bold text-gray-800 animate-fade-in rounded-lg bg-[#FFBE98] p-6 shadow-lg my-6">
+          <Welcome />
         </h1>
       </div>
       
@@ -88,9 +88,7 @@ export default function FlowersPage() {
           {carouselItems.map((item, index) => (
             <div
               key={index}
-              className={`bg-peach-100 rounded-lg p-6 flex-1 transition-opacity duration-500 ${
-                index === currentIndex ? 'block' : 'hidden md:block'
-              } ${index === currentIndex ? 'opacity-100' : 'opacity-50'}`}
+              className={`bg-[#FFBE98] rounded-lg p-6 flex-1 transition-opacity duration-500 shadow-lg my-6 ${index === currentIndex ? 'block' : 'hidden md:block'} ${index === currentIndex ? 'opacity-100' : 'opacity-50'}`}
             >
               <Image
                 src={item.image}
@@ -99,11 +97,9 @@ export default function FlowersPage() {
                 height={200}
                 className="w-full h-48 object-cover rounded-lg"
               />
-              <h2 className="text-2xl font-bold mt-4">{item.heading}</h2>
-              <p className={`text-sm mt-2 ${item.subheadingColor}`}>
-                {item.subheading}
-              </p>
-              <p className="text-gray-600 mt-2">{item.description}</p>
+              <h2 className="text-2xl font-bold mt-4 rounded-lg">{item.heading}</h2>
+              <p className={`text-sm mt-2 ${item.subheadingColor} rounded-lg`}>{item.subheading}</p>
+              <p className="text-gray-600 mt-2 rounded-lg">{item.description}</p>
             </div>
           ))}
         </div>
@@ -117,9 +113,12 @@ export default function FlowersPage() {
       </section>
 
       {/* Best Deal Bouquet Section */}
-      <section className="bg-peach-200 py-12 text-center">
-        <h2 className="text-4xl font-bold font-cursive text-gray-800">Best Deal Bouquet</h2>
-        <p className="text-pink-400 mt-4">
+      <section className="bg-[#FEECE2] py-12 text-center rounded-sm shadow-lg my-12">
+        {/* <h2 className="text-4xl font-bold font-cursive text-gray-800 rounded-lg">Best Deal Bouquet</h2> */}
+        <h2 className="text-4xl font-bold text-gray-800" style={{ fontFamily: 'Pacifico, cursive' }}>
+          Special Flower Packages
+        </h2>
+        <p className="text-pink-400 mt-4 rounded-lg">
           🌸 Share the love, touch the heart with a special flower arrangement! 🌟
         </p>
         <div className="flex justify-center gap-6 mt-8">
@@ -148,13 +147,13 @@ export default function FlowersPage() {
       </section>
 
       {/* Our Location Section */}
-      <section className="flex flex-col md:flex-row items-center justify-center gap-6 p-6 bg-peach-100">
+      <section className="flex flex-col md:flex-row items-center justify-center gap-6 p-6 bg-[#FFBE98] rounded-lg shadow-lg my-6">
         <div className="text-left">
-          <h2 className="text-4xl font-bold font-cursive text-gray-800">Our Location</h2>
-          <p className="text-gray-600 mt-4">
+          <h2 className="text-4xl font-bold font-cursive text-gray-800 rounded-lg">Our Location</h2>
+          <p className="text-gray-600 mt-4 rounded-lg">
             Jl. Melati Indah No. 27, Kel. Sakura, Kec. Bloomville, Kota Florencia 12345 🌸
           </p>
-          <button className="mt-6 bg-gray-800 text-white px-6 py-2 rounded-full">Maps</button>
+          <button className="mt-6 bg-gray-800 text-white px-6 py-2 rounded-full hover:shadow-lg transition-shadow duration-300">Maps</button>
         </div>
         <Image
           src="/place.png"

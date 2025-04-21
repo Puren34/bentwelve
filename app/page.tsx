@@ -1,50 +1,104 @@
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import styles from '@/app/ui/home.module.css';
-import { lusitana } from '@/app/ui/fonts';
-import Image from 'next/image';
+'use client';
 
-export default function Page() {
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { User, Lock } from 'lucide-react';
+import Link from 'next/link';
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (username === 'admin123' && password === '12345') {
+      router.push('/dashboard');
+    } else if (username === 'user123' && password === '12345') {
+      router.push('/home');
+    } else {
+      setError('Invalid username or password');
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className={styles.shape} />
-      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-      </div>
-      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
-        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
-          <div className="relative w-0 h-0 border-l-[15px] border-r-[15px] border-b-[26px] border-l-transparent border-r-transparnet border-b-black" />
-          <p className={`${lusitana.className}text-xl text-gray-800 md:text-3xl md:leading-normal`}>
-            <strong>Welcome to Acme.</strong> This is the example for the{' '}
-            <a href="https://nextjs.org/learn/" className="text-blue-500">
-              Next.js Learn Course
-            </a>
-            , brought to you by Vercel.
-          </p>
-          <Link
-            href="/login"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
-          </Link>
+    <div className="min-h-screen flex items-center justify-center bg-[#AF5475]">
+      <div className="flex w-[90%] max-w-4xl rounded-[60px] overflow-hidden bg-pink-100 shadow-lg">
+        {/* Left - Logo */}
+        <div className="w-1/2 bg-[#D3628B] text-pink-100 flex items-center justify-center text-4xl font-bold rounded-tr-[60px] rounded-br-[60px]">
+          <img src="icons/fs.png" alt="Logo" className="w-80 h-auto" />
         </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-          { }
-          <Image
-            src="/hero-desktop.png"
-            width={1000}
-            height={760}
-            className="hidden md:block"
-            alt="Screenshots of the dashboard project showing desktop version"
-          />
-          <Image
-            src="/hero-mobile.png"
-            width={560}
-            height={620}
-            className="block md:block"
-            alt="Screenshots of the dashboard project showing mobile version"
-          />
+
+        {/* Right - Login Form */}
+        <div className="w-1/2 p-10 flex flex-col justify-center items-center text-center">
+          <h1 className="text-2xl font-bold text-black mb-4">Login</h1>
+
+          <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+            {/* Username */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Username"
+                className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <User className="absolute right-3 top-2.5 text-gray-500" size={20} />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Lock className="absolute right-3 top-2.5 text-gray-500" size={20} />
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <p className="text-sm text-red-600 text-left">{error}</p>
+            )}
+
+            {/* Forgot Password */}
+            <div className="text-right text-sm">
+              <Link href="/forgot-password" className="text-pink-600 hover:underline font-semibold">
+                Forgot Password?
+              </Link>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              className="w-full py-2 bg-[#cc5a84] text-white font-semibold rounded hover:bg-[#b74c77] transition"
+            >
+              Login
+            </button>
+
+            {/* Google Sign In */}
+            <button
+              type="button"
+              className="w-full py-2 bg-white border shadow text-black rounded flex items-center justify-center gap-2 hover:bg-gray-100 transition"
+            >
+              <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+              Sign in with Google
+            </button>
+
+            {/* Sign up link */}
+            <p className="text-sm text-gray-700">
+              Don't have an account?{' '}
+              <Link href="/register" className="text-pink-600 hover:underline font-semibold">
+                Sign up
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

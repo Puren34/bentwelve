@@ -1,72 +1,78 @@
 import { FaUser, FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";
+import Link from 'next/link';
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen bg-rose-400">
-      {/* Left Section */}
-      <div className="flex-1 flex items-center justify-center text-pink-100 font-bold text-4xl">
-        FlowerScotch
-      </div>
+    <div className="flex min-h-screen bg-[#AF5475] items-center justify-center">
+      {/* Container */}
+      <div className="flex w-[90%] max-w-4xl rounded-[60px] overflow-hidden bg-pink-100 shadow-lg">
 
-      {/* Right Section */}
-      <div className="flex-1 flex items-center justify-center bg-pink-100 rounded-l-[80px] shadow-lg">
-        <div className="w-full max-w-sm px-6 py-10">
-          <h2 className="text-2xl font-bold text-center text-black mb-8">Registration</h2>
+        {/* Left Side - Logo */}
+        <div className="w-1/2 bg-[#D3628B] text-pink-100 flex items-center justify-center text-4xl font-bold rounded-tr-[60px] rounded-br-[60px]">
+          <img src="icons/fs.png" alt="Logo" className="w-80 h-auto" />
+        </div>
 
-          {/* Username */}
-          <div className="mb-4">
-            <div className="flex items-center bg-white shadow px-4 py-2 rounded">
+        {/* Right Side - Register Form */}
+        <div className="w-1/2 p-10 flex flex-col justify-center items-center text-center">
+          <h2 className="text-2xl font-bold text-black mb-6">Registration</h2>
+
+          {/* Form */}
+          <form className="w-full max-w-sm space-y-4">
+            {/* Username */}
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Username"
-                className="flex-1 outline-none bg-transparent"
+                className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
               />
-              <FaUser className="text-gray-500" />
+              <FaUser className="absolute right-3 top-2.5 text-gray-500" />
             </div>
-          </div>
 
-          {/* Email */}
-          <div className="mb-4">
-            <div className="flex items-center bg-white shadow px-4 py-2 rounded">
+            {/* Email */}
+            <div className="relative">
               <input
                 type="email"
                 placeholder="Email Address"
-                className="flex-1 outline-none bg-transparent"
+                className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
               />
-              <FaEnvelope className="text-gray-500" />
+              <FaEnvelope className="absolute right-3 top-2.5 text-gray-500" />
             </div>
-          </div>
 
-          {/* Password */}
-          <div className="mb-4">
-            <div className="flex items-center bg-white shadow px-4 py-2 rounded">
+            {/* Password */}
+            <div className="relative">
               <input
                 type="password"
                 placeholder="Password"
-                className="flex-1 outline-none bg-transparent"
+                className="w-full px-4 py-2 pr-10 rounded shadow border border-gray-300 focus:outline-none"
               />
-              <FaLock className="text-gray-500" />
+              <FaLock className="absolute right-3 top-2.5 text-gray-500" />
             </div>
-          </div>
 
-          {/* Register Button */}
-          <button className="w-full bg-rose-400 hover:bg-rose-500 text-white font-bold py-2 rounded shadow mb-4">
-            Register
-          </button>
+            {/* Register Button */}
+            <button
+              type="submit"
+              className="w-full py-2 bg-[#C4587B] text-white font-semibold rounded hover:bg-[#b74c77] transition"
+            >
+              Register
+            </button>
 
-          {/* Google Button */}
-          <button className="w-full bg-white border py-2 rounded shadow flex items-center justify-center gap-2">
-            <FaGoogle className="text-red-500" />
-            <span>Sign in with Google</span>
-          </button>
+            {/* Google Button */}
+            <button
+              type="button"
+              className="w-full py-2 bg-white border shadow text-black rounded flex items-center justify-center gap-2 hover:bg-gray-100 transition"
+            >
+              <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+              Sign in with Google
+            </button>
 
-          {/* Login Link */}
-          <p className="text-center mt-4 text-sm text-gray-700">
-            Already have an account?{" "}
-            <a href="/login" className="text-pink-500 hover:underline font-medium">
-              Login
-            </a>
-          </p>
+            {/* Login Link */}
+            <p className="text-sm text-gray-700">
+              Already have an account?{" "}
+              <Link href="/" className="text-pink-600 hover:underline font-semibold">
+                Login
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </div>

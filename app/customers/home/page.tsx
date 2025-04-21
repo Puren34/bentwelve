@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import Welcome from '@/app/ui/customers/welcome';
 
 const carouselItems = [
   {
@@ -66,14 +67,14 @@ export default function FlowersPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="">
       {/* Welcome Text with Fade In */}
       <div className="text-center py-8">
         <h1 className="text-4xl font-bold text-gray-800 animate-fade-in">
-          Welcome to our Store
+          <Welcome/>
         </h1>
       </div>
-
+      
       {/* Carousel Section */}
       <section className="relative flex flex-col md:flex-row justify-center gap-6 p-6">
         <button

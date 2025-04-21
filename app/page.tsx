@@ -14,10 +14,10 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (username === 'admin123' && password === '12345') {
+    if (username === 'admin123' && password === '12390') {
       router.push('/dashboard');
-    } else if (username === 'user123' && password === '12345') {
-      router.push('/home');
+    } else if (username === 'user123' && password === '12390') {
+      router.push('/customers/home');
     } else {
       setError('Invalid username or password');
     }

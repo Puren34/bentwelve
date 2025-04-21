@@ -127,7 +127,7 @@ export default function FlowersPage() {
   const decreaseQty = () => setQuantity(qty => (qty > 1 ? qty - 1 : 1));
 
   return (
-    <div className="p-4 md:p-10">
+    <div className="p-4 md:p-10 mt-20">
       <h1 className="text-3xl font-bold text-center mb-8">Transaction Reports</h1>
       <div className="flex justify-end mb-4">
         <button className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600">

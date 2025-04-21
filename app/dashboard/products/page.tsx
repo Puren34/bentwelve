@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 const products = [
@@ -50,28 +51,42 @@ const products = [
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const router = useRouter();
+
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleAdd = () => {
+    router.push("/dashboard/products/tambah");
+  };
+
+  const handleEdit = (id: number) => {
+    router.push("/dashboard/products/edit");
+  };
+
   return (
-    <div className="p-6 pt-32  min-h-screen">
+    <div className="p-6 pt-32 min-h-screen">
       <div className="flex items-center justify-between mb-16">
-        <div className="relative w-full max-w-2xl">
+        <div className="relative flex-grow">
           <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 text-lg">
             🔍
           </span>
           <input
             type="text"
-            placeholder="Search menu"
+            placeholder="Search Menu"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-full bg-white shadow focus:outline-none text-sm placeholder:text-gray-400"
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-sm focus:outline-none focus:ring-0 focus:shadow-none"
+            style={{ outline: "none", boxShadow: "none", border: "1px solid #ddd" }}
           />
         </div>
 
-        <button className="ml-6 bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded shadow">
+        <button
+          onClick={handleAdd}
+          className="ml-6 bg-pink-500 text-white px-5 py-2 rounded shadow"
+          style={{ backgroundColor: '#D3628B' }}
+        >
           + Add New
         </button>
       </div>
@@ -80,7 +95,7 @@ export default function ProductsPage() {
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-xl p-4 flex flex-col items-center w-56 "
+            className="bg-white rounded-xl p-4 flex flex-col items-center w-56"
           >
             <Image
               src={product.image}
@@ -90,11 +105,14 @@ export default function ProductsPage() {
               className="rounded-full w-32 h-32 object-cover -mt-12 z-10 shadow"
             />
             <h3 className="font-semibold text-lg mt-10">{product.name}</h3>
-            <p className="text-gray-600 mt-6">Rp.{product.price}</p>
+            <p className="text-black-600 mt-6">Rp.{product.price}</p>
             <p className="text-sm mb-6 text-[#8A4F2F]">{product.category}</p>
 
             <div className="flex gap-3">
-              <button className="text-gray-600 hover:text-black text-lg">
+              <button
+                onClick={() => handleEdit(product.id)}
+                className="text-gray-600 hover:text-black text-lg"
+              >
                 ✏️
               </button>
               <button className="text-red-500 hover:text-red-700 text-lg">

@@ -20,8 +20,8 @@ type Product = {
 const products: Product[] = [
   {
     title: "Blossom Bills",
-    price: 150.000,
-    discount: 49.99,
+    price: 200000,
+    discount: 150000,
     img: "/f11.jpg",
     description: "Bunga ini cocok untuk suasana horor romantis.",
     category: "Bloom Box",
@@ -32,7 +32,7 @@ const products: Product[] = [
   },
   {
     title: "Pental Perfection",
-    price: 180.000,
+    price: 180000,
     img: "/f22.jpg",
     description: "Wajah unik dalam bentuk bunga.",
     category: "Giant Bouquet",
@@ -43,8 +43,8 @@ const products: Product[] = [
   },
   {
     title: "Floral Fantasty",
-    price: 200.000,
-    discount: 49.99,
+    price: 250000,
+    discount: 200000,
     img: "/f33.jpg",
     description: "Cocok untuk mantan yang masih kamu doakan.",
     category: "Vase & Basket",
@@ -55,7 +55,7 @@ const products: Product[] = [
   },
   {
     title: "Blooming Essence",
-    price: 5000,
+    price: 175000,
     img: "/f4.jpg",
     description: "Untuk yang sedang merasa kosong.",
     category: "On Sale",
@@ -66,7 +66,7 @@ const products: Product[] = [
   },
   {
     title: "Eternal Elegance",
-    price: 600,
+    price: 220000,
     img: "/f5.jpg",
     description: "Terinspirasi dari seseorang bernama Steven.",
     category: "Giant Bouquet",
@@ -77,7 +77,7 @@ const products: Product[] = [
   },
   {
     title: "Radiant Bonquet",
-    price: 5000,
+    price: 160000,
     img: "/f6.jpg",
     description: "Kekosongan kedua tidak kalah indah.",
     category: "Vase & Basket",
@@ -174,11 +174,11 @@ export default function FlowersPage() {
                   <div className="mb-2">
                     {product.discount ? (
                       <>
-                        <span className="line-through text-sm mr-2">${product.price}</span>
-                        <span className="text-pink-600 font-bold">${product.discount}</span>
+                        <span className="line-through text-sm mr-2">Rp{product.price}</span>
+                        <span className="text-pink-600 font-bold">Rp{product.discount}</span>
                       </>
                     ) : (
-                      <span className="font-bold">${product.price}</span>
+                      <span className="font-bold">Rp{product.price}</span>
                     )}
                   </div>
                   <button
@@ -222,11 +222,11 @@ export default function FlowersPage() {
             <div className="mb-3">
               {selectedProduct.discount ? (
                 <>
-                  <span className="line-through mr-2 text-sm">${selectedProduct.price}</span>
-                  <span className="text-pink-600 font-bold text-lg">${selectedProduct.discount}</span>
+                  <span className="line-through mr-2 text-sm">Rp{selectedProduct.price}</span>
+                  <span className="text-pink-600 font-bold text-lg">Rp{selectedProduct.discount}</span>
                 </>
               ) : (
-                <span className="text-lg font-bold">${selectedProduct.price}</span>
+                <span className="text-lg font-bold">Rp{selectedProduct.price}</span>
               )}
             </div>
             <div className="flex items-center mb-4">

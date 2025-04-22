@@ -7,7 +7,7 @@ Nama anggota:
 Pengembangan website toko bunga FlowerScoth yang terbagi 2 pihak yakni, admin dan user. Masing-masing pihak memiliki tampilan dan fungsionalitas halaman yang berbeda. 
 
 Link GitHub: https://github.com/shakesea/bentwelve
-Link deploy: https://bentwelve-mthudj5zi-terserahs-projects.vercel.app
+Link deploy: https://bentwelve.vercel.app/
 
 Pembagian kerjaan:
 1. Daniel:

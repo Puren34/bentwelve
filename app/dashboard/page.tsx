@@ -1,15 +1,102 @@
 'use client';
 
+import Image from 'next/image';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+  Tick,
+  Scale,
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
 export default function DashboardContent() {
+  const chartData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Sales (Rp)',
+        data: [5000000, 7000000, 3000000, 6000000, 8000000, 4000000],
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          font: {
+            size: 12,
+          },
+        },
+      },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Month',
+          font: {
+            size: 12,
+          },
+        },
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Sales (Rp)',
+          font: {
+            size: 12,
+          },
+        },
+        beginAtZero: true,
+        ticks: {
+          callback: function (
+            this: Scale,
+            tickValue: string | number,
+            index: number,
+            ticks: Tick[]
+          ): string {
+            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+            return `${(value / 1000000).toFixed(1)}M`;
+          },
+        },
+      },
+    },
+  };
+
   return (
     <main className="flex-1 bg-[#FDEBEB]">
-      {/* Header Section with Title and Profile */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">
-          <img
+          <Image
             src="/Kucing.png"
             alt="User Profile"
+            width={48}
+            height={48}
             className="w-12 h-12 rounded-full border-4 border-green-500"
           />
           <div className="text-right flex-1">
@@ -19,7 +106,7 @@ export default function DashboardContent() {
         </div>
       </div>
 
-      {/* Kartu Ringkasan */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <SummaryCard title="Collected" value="Rp 15.000.000" note="5% Selesai" color="text-green-500" />
         <SummaryCard title="Pending" value="Rp 1.400.000" note="1 Tertunda" color="text-purple-500" />
@@ -27,15 +114,15 @@ export default function DashboardContent() {
         <SummaryCard title="Total Customer" value="12" note="1 Baru" color="text-red-500" />
       </div>
 
-      {/* Grafik + Komentar */}
+      {/* Chart + Comments */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Grafik Placeholder */}
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Statistik Penjualan</h2>
-          <div className="h-40 bg-gradient-to-t from-blue-300 to-blue-600 rounded-lg" />
+          <div className="h-64">
+            <Bar data={chartData} options={chartOptions} />
+          </div>
         </div>
 
-        {/* Komentar Terbaru */}
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Komentar Terbaru</h2>
           <ul className="text-sm space-y-3">
@@ -47,7 +134,7 @@ export default function DashboardContent() {
         </div>
       </div>
 
-      {/* Daftar Produk Stok Rendah */}
+      {/* Produk Hampir Habis */}
       <div className="mt-8 bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Produk Hampir Habis</h2>
         <table className="w-full text-sm text-left">

@@ -478,7 +478,7 @@ export default function FlowersPage() {
             </button>
 
             {/* Tombol Detail Product */}
-            <Link href={{ pathname: "/product/detail", query: { index: products.indexOf(selectedProduct) } }}>
+            <Link href={{ pathname: "/customers/flowers/detail", query: { index: products.indexOf(selectedProduct) } }}>
               <button className="w-full mt-3 bg-pink-100 text-pink-600 py-2 rounded-md hover:bg-pink-200">
                 Detail Product
               </button>

@@ -35,9 +35,9 @@ export default async function ReportPage() {
   return (
     <div className="p-6 md:p-8 mt-6 min-h-screen">
       {/* Header with Transaction Reports and ProfileSummary */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 relative">
         <h1 className="text-3xl font-bold text-gray-800">Transaction Reports</h1>
-        <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">
+        <div className="fixed top-6 right-4 flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 z-50 mt-4 md:mt-0">
           <Image
             src="/Kucing.png"
             alt="User Profile"

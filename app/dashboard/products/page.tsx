@@ -11,15 +11,23 @@ interface Product {
   image: string;
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams: { search?: string } }) {
+// Define the props type for a server component
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function ProductsPage({ searchParams }: PageProps) {
   // Validate environment variable
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
   const sql = neon(process.env.DATABASE_URL);
 
-  // Get search term from query params
-  const searchTerm = searchParams.search || '';
+  // Await the searchParams Promise to get the actual query parameters
+  const params = await searchParams;
+  
+  // Extract the 'search' parameter, default to an empty string if undefined
+  const searchTerm = typeof params.search === 'string' ? params.search : '';
 
   // Fetch products from the database
   let products: Product[] = [];
@@ -56,9 +64,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: { s
   return (
     <div className="p-6 min-h-screen">
       {/* Products Header with ProfileSummary */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 relative">
         <h1 className="text-3xl font-bold text-gray-800">Products</h1>
-        <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">
+        <div className="fixed top-6 right-4 flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 z-50 mt-4 md:mt-0">
           <Image
             src="/Kucing.png"
             alt="User Profile"

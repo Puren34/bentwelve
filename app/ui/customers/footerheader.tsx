@@ -63,7 +63,7 @@ export function Header() {
 
 export function Footer() {
   return (
-    <footer className="bg-[#FDCEDF] text-white text-center py-6">
+    <footer className="bg-[#FDCEDF] text-white text-center">
 
       <h1 className="text-xl font-bold mb-4 text-pink-700">FlowerScotch</h1>
       <hr className="border-t-4 border-pink-400 mb-4 w-1/2 mx-auto" />

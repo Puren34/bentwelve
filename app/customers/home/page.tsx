@@ -115,7 +115,7 @@ export default function FlowersPage() {
       {/* Best Deal Bouquet Section */}
       <section className="bg-[#FEECE2] py-12 text-center rounded-sm shadow-lg my-12">
         {/* <h2 className="text-4xl font-bold font-cursive text-gray-800 rounded-lg">Best Deal Bouquet</h2> */}
-        <h2 className="text-4xl font-bold text-gray-800" style={{ fontFamily: 'Pacifico, cursive' }}>
+        <h2 className="romanesco text-[70px] font-bold text-gray-800">
           Special Flower Packages
         </h2>
         <p className="text-pink-400 mt-4 rounded-lg">

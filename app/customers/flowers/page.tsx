@@ -123,7 +123,7 @@ export default function FlowersPage() {
 
   return (
     <div className="p-4 md:p-10">
-      <h1 className="text-3xl font-bold text-center mb-8">Choose your Flower</h1>
+      <h1 className="romanesca text-3xl font-bold text-center mb-8">Choose your Flower</h1>
       <div className="flex gap-6">
         <aside className="w-64 bg-pink-50 p-4 rounded-xl">
           <div className="mb-4">

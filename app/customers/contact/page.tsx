@@ -9,7 +9,7 @@ export default function ContactPage() {
         <div className="bg-white bg-opacity-50 max-w-3xl w-full p-6 rounded-lg shadow-md">
           {/* Judul */}
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold mb-1">Get In Touch</h1>
+            <h1 className="romanesco text-[60px] font-bold mb-1">Get In Touch</h1>
             <p className="text-sm">
               If you had a question, feel free to leave a message to us!
             </p>

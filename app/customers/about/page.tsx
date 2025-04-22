@@ -3,7 +3,7 @@ export default function AboutPage() {
     <div className="bg-white min-h-screen text-gray-800">
       {/* What We Do */}
       <section className="text-center py-12 px-4">
-        <h2 className="text-3xl font-bold mb-4">What We Do?</h2>
+        <h2 className="romanesco text-[64px] font-bold mb-4">What We Do?</h2>
         {/* <p className="max-w-2xl mx-auto bg-pink-100 p-4 rounded-md shadow"> */}
         <p className="max-w-4xl mx-auto bg-pink-100 p-6 text-lg rounded-md shadow-md">
           Kami fokus pada distribusi, aroma serta fungsi si Bunga. Produk kami selalu wangi dan bikin senang. Customer kami di seluruh dunia telah mengalami manfaat dari bunga-bunga kami yang eatable dan happy.

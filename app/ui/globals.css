@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Romanesco&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -19,4 +20,10 @@ input[type='number']::-webkit-outer-spin-button {
 
 body {
   background-color: #F8E8EE; 
+}
+
+.romanesco {
+  font-family: "Romanesco", cursive;
+  font-weight: 400;
+  font-style: normal;
 }

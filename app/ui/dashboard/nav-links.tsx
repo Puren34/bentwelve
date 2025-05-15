@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { inter } from '@/app/ui/fonts';
+import ProfileSummary from './profile';
 
 const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
@@ -30,18 +31,6 @@ export default function Sidebar() {
     <div className={`fixed inset-y-0 left-0 w-64 flex flex-col bg-[#D3628B] text-white rounded-r-[50px] ${inter.className}`}>
       <div className='flex items-center px-12 pb-0'>
         <img src='/icons/fs.png' alt='FlowerScotch Logo' className='w-32 h-auto mt-7' />
-      </div>
-
-      <div className="fixed top-6 right-4 flex items-center gap-4 p-6 bg-[#ffffff] text-black rounded-2xl shadow-lg w-80">
-        <img
-          src="/Kucing.png"
-          alt="User Profile"
-          className="w-16 h-16 rounded-full border-4 border-green-500"
-        />
-        <div className="text-right flex-1">
-          <p className="font-bold text-lg">Welcome, Monkey</p>
-          <p className="text-md text-gray-500">monkey@gmail.com</p>
-        </div>
       </div>
 
       <nav className="space-y-2 px-4 mt-10">

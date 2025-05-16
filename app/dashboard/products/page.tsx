@@ -2,29 +2,21 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { fetchProducts } from '../../lib/data';
 
-// Define the props type for a server component
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  // Await the searchParams Promise to get the actual query parameters
   const params = await searchParams;
-  
-  // Extract the 'search' parameter, default to an empty string if undefined
   const searchTerm = typeof params.search === 'string' ? params.search : '';
-
-  // Fetch products using the centralized function
   const products = await fetchProducts(searchTerm);
 
-  // Server action to handle search form submission
   async function search(formData: FormData) {
     'use server';
     const searchTerm = formData.get('search')?.toString() || '';
     redirect(`/dashboard/products?search=${encodeURIComponent(searchTerm)}`);
   }
 
-  // Server actions for navigation
   async function handleAdd() {
     'use server';
     redirect('/dashboard/products/tambah');
@@ -37,7 +29,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   return (
     <div className="p-6 min-h-screen">
-      {/* Products Header with ProfileSummary */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 relative">
         <h1 className="text-3xl font-bold text-gray-800">Products</h1>
         <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">
@@ -55,27 +46,22 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-16">
-        <div className="relative flex-grow">
-          <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 text-lg">
-            🔍
-          </span>
-          <form action={search as any}>
-            <input
-              type="text"
-              name="search"
-              placeholder="Search Menu"
-              defaultValue={searchTerm}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-sm focus:outline-none focus:ring-0 focus:shadow-none"
-              style={{ outline: "none", boxShadow: "none", border: "1px solid #ddd" }}
-            />
-          </form>
-        </div>
+      <div className="flex items-center justify-between mb-10">
+        <form action={search as any} className="flex-grow relative mr-6">
+          <span className="absolute inset-y-0 left-4 flex items-center text-gray-400 text-lg">🔍</span>
+          <input
+            type="text"
+            name="search"
+            placeholder="Search Menu"
+            defaultValue={searchTerm}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-sm focus:outline-none focus:ring-0 focus:shadow-none border border-gray-300"
+          />
+        </form>
 
         <form action={handleAdd as any}>
           <button
             type="submit"
-            className="ml-6 bg-pink-500 text-white px-5 py-2 rounded shadow"
+            className="bg-pink-500 text-white px-5 py-2 rounded shadow"
             style={{ backgroundColor: '#D3628B' }}
           >
             + Add New
@@ -83,42 +69,55 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </form>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-20 items-start">
-        {products.length === 0 ? (
-          <p>No products found.</p>
-        ) : (
-          products.map((product) => (
-            <div
-              key={product.id_produk}
-              className="bg-white rounded-xl p-4 flex flex-col items-center w-56"
-            >
-              <Image
-                src={product.gambar}
-                alt={product.nama_produk}
-                width={128}
-                height={128}
-                className="rounded-full w-32 h-32 object-cover -mt-12 z-10 shadow"
-              />
-              <h3 className="font-semibold text-lg mt-10">{product.nama_produk}</h3>
-              <p className="text-black-600 mt-6">{product.harga.replace('Rp', 'Rp ').replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</p>
-              <p className="text-sm mb-6 text-[#8A4F2F]">{product.kategori}</p>
-
-              <div className="flex gap-3">
-                <form action={handleEdit.bind(null, product.id_produk) as any}>
-                  <button
-                    type="submit"
-                    className="text-gray-600 hover:text-black text-lg"
-                  >
-                    ✏️
-                  </button>
-                </form>
-                <button className="text-red-500 hover:text-red-700 text-lg">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="min-w-full text-sm text-left border-separate border-spacing-0">
+          <thead className="bg-gray-100 text-gray-700 font-semibold">
+            <tr>
+              <th className="border-t border-b border-l border-gray-200 px-4 py-3 first:rounded-tl-lg">NO</th>
+              <th className="border-t border-b border-gray-200 px-4 py-3">ID PRODUCT</th>
+              <th className="border-t border-b border-gray-200 px-4 py-3">NAME</th>
+              <th className="border-t border-b border-gray-200 px-4 py-3">CATEGORY</th>
+              <th className="border-t border-b border-gray-200 px-4 py-3">PRICE</th>
+              <th className="border-t border-b border-r border-gray-200 px-4 py-3 last:rounded-tr-lg">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="border-t border-b border-x border-gray-200 px-4 py-3 text-center text-gray-500">
+                  No products found.
+                </td>
+              </tr>
+            ) : (
+              products.map((product, idx) => (
+                <tr key={product.id_produk} className={idx % 2 === 0 ? "bg-white" : "bg-pink-50"}>
+                  <td className="border-t border-b border-l border-gray-200 px-4 py-3 text-center">
+                    {String(idx + 1).padStart(2, '0')}
+                  </td>
+                  <td className="border-t border-b border-gray-200 px-4 py-3">{product.id_produk}</td>
+                  <td className="border-t border-b border-gray-200 px-4 py-3">{product.nama_produk}</td>
+                  <td className="border-t border-b border-gray-200 px-4 py-3">{product.kategori}</td>
+                  <td className="border-t border-b border-gray-200 px-4 py-3">
+                    {product.harga.replace('Rp', 'Rp ').replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  </td>
+                  <td className="border-t border-b border-r border-gray-200 px-4 py-3 flex gap-3">
+                    <form action={handleEdit.bind(null, product.id_produk) as any}>
+                      <button type="submit" className="text-gray-600 hover:text-black text-lg">✏️</button>
+                    </form>
+                    <button className="text-red-500 hover:text-red-700 text-lg">🗑️</button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {products.length > 0 && (
+            <tfoot>
+              <tr>
+                <td colSpan={6} className="border-b border-x border-gray-200 first:rounded-bl-lg last:rounded-br-lg"></td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
       </div>
     </div>
   );

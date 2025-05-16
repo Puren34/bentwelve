@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 bg-[#FDEBEB]">
+    <main className="flex-1 bg-[#FDEBEB] px-10">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">

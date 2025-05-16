@@ -1,218 +1,143 @@
-import postgres from 'postgres';
-import {
-  CustomerField,
-  CustomersTableType,
-  InvoiceForm,
-  InvoicesTable,
-  LatestInvoiceRaw,
-  Revenue,
-} from './definitions';
-import { formatCurrency } from './utils';
+import { neon } from '@neondatabase/serverless';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+// Interface for products (matches the database schema)
+export interface Product {
+  id_produk: string;
+  nama_produk: string;
+  harga: string;
+  kategori: string;
+  gambar: string;
+}
 
-export async function fetchRevenue() {
+// Interface for transactions (matches the database schema)
+export interface Transaction {
+  id_transaksi: string;
+  id_produk: string;
+  nama_pembeli: string;
+  tanggal: string;
+  total_harga: string;
+}
+
+// Interface for monthly sales data
+export interface MonthlySales {
+  month: string;
+  sales: number;
+}
+
+// Interface for most sold product
+export interface MostSoldProduct {
+  id_produk: string;
+  nama_produk: string;
+  total_sold: number;
+}
+
+// Initialize database connection
+function getDatabase() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  return neon(process.env.DATABASE_URL);
+}
+
+// Fetch products with optional search term
+export async function fetchProducts(searchTerm: string = ''): Promise<Product[]> {
+  const sql = getDatabase();
   try {
-    // Artificially delay a response for demo purposes.
-    // Don't do this in production :)
-
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const data = await sql<Revenue[]>`SELECT * FROM revenue`;
-
-    // console.log('Data fetch completed after 3 seconds.');
-
-    return data;
+    const products = await sql`
+      SELECT id_produk, nama_produk, harga, kategori, gambar
+      FROM public.products
+      WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
+    ` as Product[];
+    console.log('Fetched products:', products);
+    return products;
   } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch revenue data.');
+    console.error('Error fetching products:', error);
+    return [];
   }
 }
 
-export async function fetchLatestInvoices() {
+// Fetch transactions
+export async function fetchTransactions(): Promise<Transaction[]> {
+  const sql = getDatabase();
   try {
-    const data = await sql<LatestInvoiceRaw[]>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      ORDER BY invoices.date DESC
-      LIMIT 5`;
-
-    const latestInvoices = data.map((invoice) => ({
-      ...invoice,
-      amount: formatCurrency(invoice.amount),
-    }));
-    return latestInvoices;
+    const transactions = await sql`
+      SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
+      FROM public.transactions
+      ORDER BY tanggal DESC
+    ` as Transaction[];
+    console.log('Fetched transactions:', transactions);
+    return transactions;
   } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices.');
+    console.error('Error fetching transactions:', error);
+    return [];
   }
 }
 
-export async function fetchCardData() {
+// Fetch total number of products
+export async function fetchTotalProducts(): Promise<number> {
+  const sql = getDatabase();
   try {
-    // You can probably combine these into a single SQL query
-    // However, we are intentionally splitting them to demonstrate
-    // how to initialize multiple queries in parallel with JS.
-    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-    const invoiceStatusPromise = sql`SELECT
-         SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
-         SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
-         FROM invoices`;
-
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
-    ]);
-
-    const numberOfInvoices = Number(data[0][0].count ?? '0');
-    const numberOfCustomers = Number(data[1][0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2][0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2][0].pending ?? '0');
-
-    return {
-      numberOfCustomers,
-      numberOfInvoices,
-      totalPaidInvoices,
-      totalPendingInvoices,
-    };
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch card data.');
-  }
-}
-
-const ITEMS_PER_PAGE = 6;
-export async function fetchFilteredInvoices(
-  query: string,
-  currentPage: number,
-) {
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  try {
-    const invoices = await sql<InvoicesTable[]>`
-      SELECT
-        invoices.id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      WHERE
-        customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`} OR
-        invoices.amount::text ILIKE ${`%${query}%`} OR
-        invoices.date::text ILIKE ${`%${query}%`} OR
-        invoices.status ILIKE ${`%${query}%`}
-      ORDER BY invoices.date DESC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    const result = await sql`
+      SELECT COUNT(*) as total
+      FROM public.products
     `;
-
-    return invoices;
+    return Number(result[0].total) || 0;
   } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoices.');
+    console.error('Error fetching total products:', error);
+    return 0;
   }
 }
 
-export async function fetchInvoicesPages(query: string) {
+// Fetch total revenue from transactions
+export async function fetchTotalRevenue(): Promise<number> {
+  const sql = getDatabase();
   try {
-    const data = await sql`SELECT COUNT(*)
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE
-      customers.name ILIKE ${`%${query}%`} OR
-      customers.email ILIKE ${`%${query}%`} OR
-      invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
-  `;
-
-    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
-    return totalPages;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch total number of invoices.');
-  }
-}
-
-export async function fetchInvoiceById(id: string) {
-  try {
-    const data = await sql<InvoiceForm[]>`
-      SELECT
-        invoices.id,
-        invoices.customer_id,
-        invoices.amount,
-        invoices.status
-      FROM invoices
-      WHERE invoices.id = ${id};
+    const result = await sql`
+      SELECT SUM(CAST(REPLACE(total_harga, 'Rp', '') AS INTEGER)) as total
+      FROM public.transactions
     `;
-
-    const invoice = data.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
-    }));
-
-    return invoice[0];
+    return Number(result[0].total) || 0;
   } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoice.');
+    console.error('Error fetching total revenue:', error);
+    return 0;
   }
 }
 
-export async function fetchCustomers() {
+// Fetch most sold product
+export async function fetchMostSoldProduct(): Promise<MostSoldProduct | null> {
+  const sql = getDatabase();
   try {
-    const customers = await sql<CustomerField[]>`
-      SELECT
-        id,
-        name
-      FROM customers
-      ORDER BY name ASC
-    `;
-
-    return customers;
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch all customers.');
+    const result = await sql`
+      SELECT t.id_produk, p.nama_produk, COUNT(t.id_produk) as total_sold
+      FROM public.transactions t
+      JOIN public.products p ON t.id_produk = p.id_produk
+      GROUP BY t.id_produk, p.nama_produk
+      ORDER BY total_sold DESC
+      LIMIT 1
+    ` as MostSoldProduct[];
+    return result[0] || null;
+  } catch (error) {
+    console.error('Error fetching most sold product:', error);
+    return null;
   }
 }
 
-export async function fetchFilteredCustomers(query: string) {
+// Fetch monthly sales data for the chart
+export async function fetchMonthlySales(): Promise<MonthlySales[]> {
+  const sql = getDatabase();
   try {
-    const data = await sql<CustomersTableType[]>`
-		SELECT
-		  customers.id,
-		  customers.name,
-		  customers.email,
-		  customers.image_url,
-		  COUNT(invoices.id) AS total_invoices,
-		  SUM(CASE WHEN invoices.status = 'pending' THEN invoices.amount ELSE 0 END) AS total_pending,
-		  SUM(CASE WHEN invoices.status = 'paid' THEN invoices.amount ELSE 0 END) AS total_paid
-		FROM customers
-		LEFT JOIN invoices ON customers.id = invoices.customer_id
-		WHERE
-		  customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`}
-		GROUP BY customers.id, customers.name, customers.email, customers.image_url
-		ORDER BY customers.name ASC
-	  `;
-
-    const customers = data.map((customer) => ({
-      ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
-    }));
-
-    return customers;
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch customer table.');
+    const result = await sql`
+      SELECT 
+        TO_CHAR(tanggal, 'Mon') as month,
+        SUM(CAST(REPLACE(total_harga, 'Rp', '') AS INTEGER)) as sales
+      FROM public.transactions
+      WHERE tanggal >= '2025-01-01' AND tanggal < '2025-07-01'
+      GROUP BY TO_CHAR(tanggal, 'Mon'), EXTRACT(MONTH FROM tanggal)
+      ORDER BY EXTRACT(MONTH FROM tanggal)
+    ` as MonthlySales[];
+    return result;
+  } catch (error) {
+    console.error('Error fetching monthly sales:', error);
+    return [];
   }
 }

@@ -1,15 +1,6 @@
-import { neon } from '@neondatabase/serverless';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-
-// Interface for products (matches the database schema)
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
-}
+import { fetchProducts } from '../../lib/data';
 
 // Define the props type for a server component
 interface PageProps {
@@ -17,31 +8,14 @@ interface PageProps {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  // Validate environment variable
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
-  const sql = neon(process.env.DATABASE_URL);
-
   // Await the searchParams Promise to get the actual query parameters
   const params = await searchParams;
   
   // Extract the 'search' parameter, default to an empty string if undefined
   const searchTerm = typeof params.search === 'string' ? params.search : '';
 
-  // Fetch products from the database
-  let products: Product[] = [];
-  try {
-    products = (await sql`
-      SELECT id, name, price, category, image
-      FROM public.products
-      WHERE name ILIKE ${'%' + searchTerm + '%'}
-    `) as Product[];
-    console.log('Fetched products:', products); // Debug log
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    products = []; // Fallback to empty array
-  }
+  // Fetch products using the centralized function
+  const products = await fetchProducts(searchTerm);
 
   // Server action to handle search form submission
   async function search(formData: FormData) {
@@ -56,9 +30,9 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     redirect('/dashboard/products/tambah');
   }
 
-  async function handleEdit(id: number) {
+  async function handleEdit(id_product: string) {
     'use server';
-    redirect(`/dashboard/products/edit?id=${id}`);
+    redirect(`/dashboard/products/edit?id=${encodeURIComponent(id_product)}`);
   }
 
   return (
@@ -115,22 +89,22 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         ) : (
           products.map((product) => (
             <div
-              key={product.id}
+              key={product.id_produk}
               className="bg-white rounded-xl p-4 flex flex-col items-center w-56"
             >
               <Image
-                src={product.image}
-                alt={product.name}
+                src={product.gambar}
+                alt={product.nama_produk}
                 width={128}
                 height={128}
                 className="rounded-full w-32 h-32 object-cover -mt-12 z-10 shadow"
               />
-              <h3 className="font-semibold text-lg mt-10">{product.name}</h3>
-              <p className="text-black-600 mt-6">Rp.{product.price}</p>
-              <p className="text-sm mb-6 text-[#8A4F2F]">{product.category}</p>
+              <h3 className="font-semibold text-lg mt-10">{product.nama_produk}</h3>
+              <p className="text-black-600 mt-6">{product.harga.replace('Rp', 'Rp ').replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</p>
+              <p className="text-sm mb-6 text-[#8A4F2F]">{product.kategori}</p>
 
               <div className="flex gap-3">
-                <form action={handleEdit.bind(null, product.id) as any}>
+                <form action={handleEdit.bind(null, product.id_produk) as any}>
                   <button
                     type="submit"
                     className="text-gray-600 hover:text-black text-lg"

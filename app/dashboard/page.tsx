@@ -1,7 +1,8 @@
-'use client';
-
 import Image from 'next/image';
-import { Bar } from 'react-chartjs-2';
+import { fetchTotalProducts, fetchTotalRevenue, fetchMostSoldProduct, fetchMonthlySales } from '../lib/data';
+import ChartClient from '@/app/ui/dashboard/chart-client';
+import { Suspense } from 'react';
+import { RevenueChartSkeleton } from '@/app/ui/skeletons';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,85 +11,26 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartOptions,
-  Tick,
-  Scale,
 } from 'chart.js';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function DashboardContent() {
-  const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Sales (Rp)',
-        data: [5000000, 7000000, 3000000, 6000000, 8000000, 4000000],
-        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1,
-      },
-    ],
-  };
+export default async function DashboardPage() {
+  // Fetch analytics data
+  const [totalProducts, totalRevenue, mostSoldProduct, monthlySales] = await Promise.all([
+    fetchTotalProducts(),
+    fetchTotalRevenue(),
+    fetchMostSoldProduct(),
+    fetchMonthlySales(),
+  ]);
 
-  const chartOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          font: {
-            size: 12,
-          },
-        },
-      },
-      title: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Month',
-          font: {
-            size: 12,
-          },
-        },
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Sales (Rp)',
-          font: {
-            size: 12,
-          },
-        },
-        beginAtZero: true,
-        ticks: {
-          callback: function (
-            this: Scale,
-            tickValue: string | number,
-            index: number,
-            ticks: Tick[]
-          ): string {
-            const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
-            return `${(value / 1000000).toFixed(1)}M`;
-          },
-        },
-      },
-    },
+  const formatCurrency = (value: number): string => {
+    return `Rp ${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
   };
 
   return (
     <main className="flex-1 bg-[#FDEBEB]">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
         <div className="flex items-center gap-4 p-4 bg-white text-black rounded-2xl shadow-lg w-64 mt-4 md:mt-0">
@@ -106,7 +48,6 @@ export default function DashboardContent() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <SummaryCard title="Collected" value="Rp 15.000.000" note="5% Selesai" color="text-green-500" />
         <SummaryCard title="Pending" value="Rp 1.400.000" note="1 Tertunda" color="text-purple-500" />
@@ -114,15 +55,36 @@ export default function DashboardContent() {
         <SummaryCard title="Total Customer" value="12" note="1 Baru" color="text-red-500" />
       </div>
 
-      {/* Chart + Comments */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Statistik Penjualan</h2>
-          <div className="h-64">
-            <Bar data={chartData} options={chartOptions} />
+      <div className="bg-white rounded-xl shadow p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Analitik Bisnis</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-500">Total Produk</h3>
+            <p className="text-xl font-bold text-gray-800">{totalProducts}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-500">Total Pendapatan</h3>
+            <p className="text-xl font-bold text-gray-800">{formatCurrency(totalRevenue)}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-500">Produk Terlaris</h3>
+            <p className="text-xl font-bold text-gray-800">
+              {mostSoldProduct ? mostSoldProduct.nama_produk : 'N/A'} 
+              {mostSoldProduct && ` (${mostSoldProduct.total_sold} terjual)`}
+            </p>
           </div>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Suspense fallback={<RevenueChartSkeleton />}>
+          <ChartClient
+            monthlySales={monthlySales}
+            totalProducts={totalProducts}
+            totalRevenue={totalRevenue}
+            mostSoldProduct={mostSoldProduct}
+          />
+        </Suspense>
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Komentar Terbaru</h2>
           <ul className="text-sm space-y-3">
@@ -134,7 +96,6 @@ export default function DashboardContent() {
         </div>
       </div>
 
-      {/* Produk Hampir Habis */}
       <div className="mt-8 bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Produk Hampir Habis</h2>
         <table className="w-full text-sm text-left">

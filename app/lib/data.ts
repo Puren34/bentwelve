@@ -1,445 +1,83 @@
-import postgres from 'postgres';
+import { prisma } from '@/app/lib/prisma';
 
-// Interface untuk products
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  image: string;
+export interface Product { id: string; name: string; price: number; category: string; image: string; }
+export interface MonthlyRevenue { month: string; revenue: number; }
+export interface MonthlyExpense { month: string; expenses: number; }
+export interface MostSoldProduct { id_produk: string; nama_produk: string; total_sold: number; }
+export interface Invoice { id: string; name: string; email: string; amount: number; date: string; status: 'paid' | 'pending' | 'overdue'; image_url: string; }
+export interface Transaction { id_transaksi: string; id_produk: string; nama_pembeli: string; tanggal: string; total_harga: number; status?: string; }
+
+const PAGE_SIZE = 10;
+const searchWhere = (searchTerm = '') => ({ nama_produk: { contains: searchTerm, mode: 'insensitive' as const } });
+const mapProduct = (product: any): Product => ({ id: product.id_produk, name: product.nama_produk, price: Number(product.harga), category: product.kategori, image: product.gambar || '' });
+const toMonth = (date: Date, short = false) => date.toLocaleString('en-US', { month: short ? 'short' : '2-digit', year: short ? undefined : 'numeric', timeZone: 'UTC' }).replace(',', '').replace(' ', short ? '' : '-');
+
+export async function fetchProducts(searchTerm = '', currentPage = 1) {
+  const products = await prisma.products.findMany({ where: searchWhere(searchTerm), orderBy: { created_at: 'desc' }, skip: (currentPage - 1) * PAGE_SIZE, take: PAGE_SIZE });
+  return products.map(mapProduct);
+}
+export async function fetchAllProducts(searchTerm = '') { return (await prisma.products.findMany({ where: searchWhere(searchTerm), orderBy: { created_at: 'desc' } })).map(mapProduct); }
+export async function fetchProductCount(searchTerm = '') { return prisma.products.count({ where: searchWhere(searchTerm) }); }
+export async function fetchTotalUsers() { return prisma.users.count(); }
+export async function fetchTransactions(currentPage = 1) {
+  const rows = await prisma.transactions.findMany({ orderBy: { tanggal: 'desc' }, skip: (currentPage - 1) * PAGE_SIZE, take: PAGE_SIZE });
+  return rows.map((row) => ({ ...row, total_harga: Number(row.total_harga) }));
 }
 
-// Interface untuk monthly revenue
-export interface MonthlyRevenue {
-  month: string;
-  revenue: number;
+export async function fetchMonthlyRevenue(): Promise<MonthlyRevenue[]> {
+  const [transactions, expenses] = await Promise.all([
+    prisma.transactions.findMany({ where: { tanggal: { gte: new Date('2025-01-01'), lt: new Date('2025-07-01') } }, select: { tanggal: true, total_harga: true } }),
+    prisma.expenses.findMany({ where: { tanggal: { gte: new Date('2025-01-01'), lt: new Date('2025-07-01') } }, select: { tanggal: true, jumlah_pengeluaran: true } }),
+  ]);
+  const totals = new Map<string, number>();
+  for (const row of transactions) { const key = toMonth(row.tanggal); totals.set(key, (totals.get(key) || 0) + Number(row.total_harga)); }
+  for (const row of expenses) { const key = toMonth(row.tanggal); totals.set(key, (totals.get(key) || 0) - Number(row.jumlah_pengeluaran)); }
+  return [...totals].sort(([a], [b]) => a.localeCompare(b)).map(([month, revenue]) => ({ month, revenue }));
 }
-
-// Interface untuk monthly expenses
-export interface MonthlyExpense {
-  month: string;
-  expenses: number;
+export async function fetchMostSoldProduct(): Promise<MostSoldProduct | null> {
+  const product = await prisma.products.findFirst({ orderBy: { total_sold: 'desc' } });
+  return product ? { id_produk: product.id_produk, nama_produk: product.nama_produk, total_sold: product.total_sold } : null;
 }
-
-// Interface untuk most sold product
-export interface MostSoldProduct {
-  id_produk: string;
-  nama_produk: string;
-  total_sold: number;
+export async function fetchFilteredInvoices(_query = '', _currentPage = 1): Promise<Invoice[]> { return []; }
+export async function fetchFilteredTransactions(query = '', currentPage = 1) {
+  const rows = await prisma.transactions.findMany({ where: { nama_pembeli: { contains: query, mode: 'insensitive' } }, orderBy: { tanggal: 'desc' }, skip: (currentPage - 1) * PAGE_SIZE, take: PAGE_SIZE });
+  return rows.map((row) => ({ ...row, total_harga: Number(row.total_harga) }));
 }
-
-// Interface untuk invoices
-export interface Invoice {
-  id: string;
-  name: string;
-  email: string;
-  amount: number;
-  date: string;
-  status: 'paid' | 'pending' | 'overdue';
-  image_url: string;
+export async function fetchTransactionCount(query = '') { return prisma.transactions.count({ where: { nama_pembeli: { contains: query, mode: 'insensitive' } } }); }
+export async function fetchTotalTransactions() { return prisma.transactions.count(); }
+export async function fetchMonthlyExpenses(): Promise<MonthlyExpense[]> {
+  const rows = await prisma.expenses.findMany({ where: { tanggal: { gte: new Date('2025-01-01'), lt: new Date('2025-07-01') } } });
+  const totals = new Map<string, number>();
+  for (const row of rows) { const key = toMonth(row.tanggal); totals.set(key, (totals.get(key) || 0) + Number(row.jumlah_pengeluaran)); }
+  return [...totals].sort(([a], [b]) => a.localeCompare(b)).map(([month, expenses]) => ({ month, expenses }));
 }
-
-export interface Transaction {
-  id_transaksi: string;
-  id_produk: string;
-  nama_pembeli: string;
-  tanggal: string;
-  total_harga: number;
-  status?: string;
+export interface MonthlySales { month: string; sales: number; }
+export async function fetchMonthlySales(): Promise<MonthlySales[]> {
+  const rows = await prisma.transactions.findMany({ select: { tanggal: true, total_harga: true } });
+  const totals = new Map<string, number>();
+  for (const row of rows) { const key = toMonth(row.tanggal, true); totals.set(key, (totals.get(key) || 0) + Number(row.total_harga)); }
+  return [...totals].map(([month, sales]) => ({ month, sales }));
 }
-
-// Inisialisasi koneksi database
-const sql = postgres(process.env.DATABASE_URL || "");
-
-// Fetch products with pagination
-export async function fetchProducts(searchTerm: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
-  const offset = (currentPage - 1) * PAGE_SIZE;
-
-  try {
-    return await sql`
-      SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
-      FROM public.products
-      WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
-      ORDER BY created_at DESC
-      LIMIT ${PAGE_SIZE}
-      OFFSET ${offset}
-    `;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw new Error('Failed to fetch products.');
-  }
-}
-
-export async function fetchAllProducts(searchTerm: string = '') {
-  try {
-    const totalCount = await fetchProductCount(searchTerm);
-    const allPages = Math.ceil(totalCount / 10); 
-    let allProducts: Product[] = [];
-
-    for (let page = 1; page <= allPages; page++) {
-      const products = await fetchProducts(searchTerm, page);
-      // Map each product to ensure it matches the Product interface
-      const typedProducts: Product[] = products.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        category: p.category,
-        image: p.image
-      }));
-      allProducts = [...allProducts, ...typedProducts];
-    }
-
-    return allProducts;
-  } catch (error) {
-    console.error('Error fetching all products:', error);
-    throw new Error('Failed to fetch all products.');
-  }
-}
-// Get total number of matching products for pagination
-export async function fetchProductCount(searchTerm: string = '') {
-  try {
-    const data = await sql`
-      SELECT COUNT(*) as total
-      FROM public.products
-      WHERE nama_produk ILIKE ${'%' + searchTerm + '%'}
-    `;
-    return Number(data[0].total) || 0;
-  } catch (error) {
-    console.error('Error fetching product count:', error);
-    throw new Error('Failed to fetch product count.');
-  }
-}
-
-export async function fetchTotalUsers() {
-  try {
-    const data = await sql`
-      SELECT COUNT(*) as total
-      FROM public.users
-    `;
-    return Number(data[0].total) || 0;
-  } catch (error) {
-    console.error('Error fetching total users:', error);
-    throw new Error('Failed to fetch total users.');
-  }
-}
-
-export async function fetchTransactions(currentPage: number = 1) {
-  const PAGE_SIZE = 10;
-  const offset = (currentPage - 1) * PAGE_SIZE;
-  
-  try {
-    return await sql`
-      SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga, status
-      FROM public.transactions
-      ORDER BY tanggal DESC
-      LIMIT ${PAGE_SIZE}
-      OFFSET ${offset}
-    `;
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    throw new Error('Failed to fetch transactions.');
-  }
-}
-
-export async function fetchMonthlyRevenue() {
-  try {
-    return await sql`
-      WITH sales AS (
-        SELECT
-          TO_CHAR(tanggal, 'YYYY-MM') AS month,
-          SUM(total_harga) AS total_sales
-        FROM public.transactions
-        WHERE tanggal >= '2025-01-01' AND tanggal < '2025-07-01'
-        GROUP BY TO_CHAR(tanggal, 'YYYY-MM')
-      ),
-      expenses AS (
-        SELECT
-          TO_CHAR(tanggal, 'YYYY-MM') AS month,
-          SUM(jumlah_pengeluaran) AS total_expenses
-        FROM public.expenses
-        WHERE tanggal >= '2025-01-01' AND tanggal < '2025-07-01'
-        GROUP BY TO_CHAR(tanggal, 'YYYY-MM')
-      )
-      SELECT
-        COALESCE(sales.month, expenses.month) AS month,
-        COALESCE(sales.total_sales, 0) - COALESCE(expenses.total_expenses, 0) AS revenue
-      FROM sales
-      FULL OUTER JOIN expenses ON sales.month = expenses.month
-      ORDER BY month
-    `;
-  } catch (error) {
-    console.error('Error fetching monthly revenue:', error);
-    throw new Error('Failed to fetch monthly revenue.');
-  }
-}
-
-export async function fetchMostSoldProduct() {
-  try {
-    const data = await sql`
-      SELECT t.id_produk, p.nama_produk, COUNT(t.id_produk) as total_sold
-      FROM public.transactions t
-      JOIN public.products p ON t.id_produk = p.id_produk
-      GROUP BY t.id_produk, p.nama_produk
-      ORDER BY total_sold DESC
-      LIMIT 1
-    `;
-    return data[0] || null;
-  } catch (error) {
-    console.error('Error fetching most sold product:', error);
-    throw new Error('Failed to fetch most sold product.');
-  }
-}
-
-export async function fetchFilteredInvoices(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
-  const offset = (currentPage - 1) * PAGE_SIZE;
-
-  try {
-    return await sql`
-      SELECT id, customer_id as name, email, amount, date, status, image_url
-      FROM public.invoices
-      WHERE customer_id ILIKE ${'%' + query + '%'}
-      ORDER BY date DESC
-      LIMIT ${PAGE_SIZE}
-      OFFSET ${offset}
-    `;
-  } catch (error) {
-    console.error('Error fetching invoices:', error);
-    throw new Error('Failed to fetch invoices.');
-  }
-}
-
-export async function fetchFilteredTransactions(query: string = '', currentPage: number = 1) {
-  const PAGE_SIZE = 10;
-  const offset = (currentPage - 1) * PAGE_SIZE;
-
-  try {
-    return await sql`
-      SELECT id_transaksi, id_produk, nama_pembeli, tanggal, total_harga
-      FROM public.transactions
-      WHERE nama_pembeli ILIKE ${'%' + query + '%'}
-      ORDER BY tanggal DESC
-      LIMIT ${PAGE_SIZE}
-      OFFSET ${offset}
-    `;
-  } catch (error) {
-    console.error('Error fetching filtered transactions:', error);
-    throw new Error('Failed to fetch filtered transactions.');
-  }
-}
-
-export async function fetchTransactionCount(query: string = '') {
-  try {
-    const data = await sql`
-      SELECT COUNT(*) as total
-      FROM public.transactions
-      WHERE nama_pembeli ILIKE ${'%' + query + '%'}
-    `;
-    return Number(data[0].total) || 0;
-  } catch (error) {
-    console.error('Error fetching transaction count:', error);
-    throw new Error('Failed to fetch transaction count.');
-  }
-}
-
-export async function fetchTotalTransactions() {
-  try {
-    const data = await sql`
-      SELECT COUNT(*) as total
-      FROM public.transactions
-    `;
-    return Number(data[0].total) || 0;
-  } catch (error) {
-    console.error('Error fetching total transactions:', error);
-    throw new Error('Failed to fetch total transactions.');
-  }
-}
-
-export async function fetchMonthlyExpenses() {
-  try {
-    return await sql`
-      SELECT
-        TO_CHAR(tanggal, 'YYYY-MM') AS month,
-        SUM(jumlah_pengeluaran) AS expenses
-      FROM public.expenses
-      WHERE tanggal >= '2025-01-01' AND tanggal < '2025-07-01'
-      GROUP BY TO_CHAR(tanggal, 'YYYY-MM')
-      ORDER BY TO_CHAR(tanggal, 'YYYY-MM')
-    `;
-  } catch (error) {
-    console.error('Error fetching monthly expenses:', error);
-    throw new Error('Failed to fetch monthly expenses.');
-  }
-}
-
-export interface MonthlySales {
-  month: string;
-  sales: number;
-}
-
-export async function fetchMonthlySales() {
-  try {
-    return await sql`
-      SELECT
-        TO_CHAR(tanggal, 'Mon') AS month,
-        SUM(total_harga) AS sales
-      FROM public.transactions
-      GROUP BY TO_CHAR(tanggal, 'Mon'), EXTRACT(MONTH FROM tanggal)
-      ORDER BY EXTRACT(MONTH FROM tanggal)
-    `;
-  } catch (error) {
-    console.error('Error fetching monthly sales:', error);
-    throw new Error('Failed to fetch monthly sales.');
-  }
-}
-
 export async function fetchCardData() {
-  try {
-    const [productsResult, usersResult, revenueResult] = await Promise.all([
-      sql`SELECT COUNT(*) as total FROM public.products`,
-      sql`SELECT COUNT(*) as total FROM public.users`,
-      sql`
-        WITH sales AS (
-          SELECT COALESCE(SUM(total_harga), 0) AS total_sales
-          FROM public.transactions
-          WHERE tanggal <= NOW()
-        ),
-        expenses AS (
-          SELECT COALESCE(SUM(jumlah_pengeluaran), 0) AS total_expenses
-          FROM public.expenses
-          WHERE tanggal <= NOW()
-        )
-        SELECT (sales.total_sales - expenses.total_expenses) AS revenue
-        FROM sales, expenses
-      `,
-    ]);
-
-    const totalProducts = Number(productsResult[0].total) || 0;
-    const totalUsers = Number(usersResult[0].total) || 0;
-    const totalProfit = Number(revenueResult[0]?.revenue) || 0;
-
-    const [prevProductsResult, prevUsersResult, prevRevenueResult] = await Promise.all([
-      sql`
-        SELECT COUNT(*) as total
-        FROM product_history
-        WHERE snapshot_date = '2025-05-31 23:59:59'
-      `,
-      sql`SELECT COUNT(*) as total FROM user_history`,
-      sql`
-        WITH sales AS (
-          SELECT COALESCE(SUM(total_harga), 0) AS total_sales
-          FROM transaction_history
-          WHERE snapshot_date = '2025-05-31 23:59:59'
-        ),
-        expenses AS (
-          SELECT COALESCE(SUM(jumlah_pengeluaran), 0) AS total_expenses
-          FROM expense_history
-          WHERE snapshot_date = '2025-05-31 23:59:59'
-        )
-        SELECT (sales.total_sales - expenses.total_expenses) AS revenue
-        FROM sales, expenses
-      `,
-    ]);
-
-    const prevProducts = Number(prevProductsResult[0].total) || 0;
-    const prevUsers = Number(prevUsersResult[0].total) || 0;
-    const prevProfit = Number(prevRevenueResult[0]?.revenue) || 0;
-
-    const productChange = totalProducts - prevProducts;
-    const userChange = totalUsers - prevUsers;
-    const profitChange = prevProfit !== 0 ? ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0;
-
-    return {
-      totalProducts,
-      totalUsers,
-      totalProfit,
-      productChange,
-      userChange,
-      profitChange,
-    };
-  } catch (error) {
-    console.error('Error fetching card data:', error);
-    throw new Error('Failed to fetch card data.');
-  }
+  const snapshot = new Date('2025-05-31T23:59:59');
+  const [totalProducts, totalUsers, transactions, expenses, prevProducts, prevUsers, prevTransactions, prevExpenses] = await Promise.all([
+    prisma.products.count(), prisma.users.count(), prisma.transactions.findMany({ select: { total_harga: true } }), prisma.expenses.findMany({ select: { jumlah_pengeluaran: true } }),
+    prisma.product_history.count({ where: { snapshot_date: snapshot } }), prisma.user_history.count(),
+    prisma.transaction_history.findMany({ where: { snapshot_date: snapshot }, select: { total_harga: true } }), prisma.expense_history.findMany({ where: { snapshot_date: snapshot }, select: { jumlah_pengeluaran: true } }),
+  ]);
+  const sum = (rows: any[], field: string) => rows.reduce((total, row) => total + Number(row[field] || 0), 0);
+  const totalProfit = sum(transactions, 'total_harga') - sum(expenses, 'jumlah_pengeluaran');
+  const prevProfit = sum(prevTransactions, 'total_harga') - sum(prevExpenses, 'jumlah_pengeluaran');
+  return { totalProducts, totalUsers, totalProfit, productChange: totalProducts - prevProducts, userChange: totalUsers - prevUsers, profitChange: prevProfit ? ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0 };
 }
-
-export interface BestSellingProduct {
-  name: string;
-  sales: number;
-  price: number;
+export interface BestSellingProduct { name: string; sales: number; price: number; }
+export async function fetchBestSellingProducts(): Promise<BestSellingProduct[]> {
+  const rows = await prisma.products.findMany({ orderBy: { total_sold: 'desc' }, take: 5 });
+  return rows.map((row) => ({ name: row.nama_produk, sales: row.total_sold, price: Number(row.harga) }));
 }
-
-export async function fetchBestSellingProducts() {
-  try {
-    const result = await sql`
-      WITH product_sales AS (
-        SELECT 
-          t.id_produk,
-          COUNT(t.id_produk) AS total_sold
-        FROM public.transactions t
-        GROUP BY t.id_produk
-      )
-      SELECT 
-        p.nama_produk AS name,
-        COALESCE(ps.total_sold, 0) AS sales,
-        p.harga AS price
-      FROM public.products p
-      LEFT JOIN product_sales ps ON p.id_produk = ps.id_produk
-      ORDER BY ps.total_sold DESC NULLS LAST
-      LIMIT 5
-    `;
-
-    // Map hasil query ke tipe BestSellingProduct
-    const products: BestSellingProduct[] = result.map((row: any) => ({
-      name: row.name || "Unknown",
-      sales: Number(row.sales) || 0,
-      price: Number(row.price) || 0,
-    }));
-
-    return products;
-  } catch (error) {
-    console.error("Error fetching best selling products:", error);
-    return [];
-  }
-}
-
-export interface LatestTransaction {
-  title: string; // id_transaksi
-  date: string;
-  status: string;
-  total_harga: number;
-}
-
+export interface LatestTransaction { title: string; date: string; status: string; total_harga: number; }
 export async function fetchLatestTransactions(): Promise<LatestTransaction[]> {
-  try {
-    const result = await sql<LatestTransaction[]>`
-      SELECT 
-        nama_pembeli AS title, 
-        tanggal AS date, 
-        status, 
-        total_harga
-      FROM public.transactions
-      ORDER BY tanggal DESC
-      LIMIT 3
-    `;
-    return result;
-  } catch (error) {
-    console.error('Error fetching latest transactions:', error);
-    throw new Error('Failed to fetch latest transactions.');
-  }
+  const rows = await prisma.transactions.findMany({ orderBy: { tanggal: 'desc' }, take: 3 });
+  return rows.map((row) => ({ title: row.nama_pembeli, date: row.tanggal.toISOString(), status: row.status, total_harga: Number(row.total_harga) }));
 }
-export async function fetchProductById(id: string) {
-  try {
-    const data = await sql`
-      SELECT id_produk as id, nama_produk as name, harga as price, kategori as category, gambar as image
-      FROM public.products
-      WHERE id_produk = ${id}
-      LIMIT 1
-    `;
-    return data[0] || null;
-  } catch (error) {
-    console.error('Error fetching product by ID:', error);
-    throw new Error('Failed to fetch product by ID.');
-  }
-}
+export async function fetchProductById(id: string) { const product = await prisma.products.findUnique({ where: { id_produk: id } }); return product ? mapProduct(product) : null; }

@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false, // Ubah ke false sementara untuk mengurangi pengecekan tipe ketat
+    "strict": false, 
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -18,7 +19,6 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     },

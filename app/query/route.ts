@@ -1,22 +1,16 @@
-import postgres from 'postgres';
+import { NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
-
-async function listInvoices() {
-	const data = await sql`
-    SELECT invoices.amount, customers.name
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE invoices.amount = 666;
-  `;
-
-	return data;
-}
-
+// Endpoint diagnostik sederhana untuk memastikan koneksi Prisma bekerja.
 export async function GET() {
   try {
-  	return Response.json(await listInvoices());
+    const products = await prisma.products.findMany({
+      select: { nama_produk: true, harga: true },
+      take: 10,
+      orderBy: { created_at: 'desc' },
+    });
+    return NextResponse.json(products.map((product) => ({ ...product, harga: Number(product.harga) })));
   } catch (error) {
-  	return Response.json({ error }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal mengambil data database.' }, { status: 500 });
   }
 }

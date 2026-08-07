@@ -1,56 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-});
-
-type Params = {
-  id: string; // UUID sebagai string
-};
-
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<Params> } // Menangani params sebagai Promise
-) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const params = await context.params; // Tunggu resolusi params
-    const id = params.id;
-    console.log("Mengambil produk dengan ID:", id);
-    const client = await pool.connect();
+    const { id } = await context.params;
+    const product = await prisma.products.findUnique({ where: { id_produk: id } });
+    if (!product) return NextResponse.json({ error: 'Produk tidak ditemukan' }, { status: 404 });
 
-    try {
-      const result = await client.query(
-        "SELECT id_produk, nama_produk, harga, kategori, gambar, deskripsi, created_at, total_sold, image FROM products WHERE id_produk = $1",
-        [id]
-      );
-
-      if (result.rows.length === 0) {
-        return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 });
-      }
-
-      const product = {
-        id_produk: result.rows[0].id_produk,
-        title: result.rows[0].nama_produk,
-        price: result.rows[0].harga ? Number(result.rows[0].harga) : null,
-        category: result.rows[0].kategori,
-        img: result.rows[0].gambar || "/default-image.jpg",
-        description: result.rows[0].deskripsi || "Deskripsi tidak tersedia.",
-        created_at: result.rows[0].created_at,
-        total_sold: result.rows[0].total_sold || 0,
-        image: result.rows[0].image || null,
-      };
-
-      return NextResponse.json(product);
-    } finally {
-      client.release();
-    }
+    return NextResponse.json({
+      id_produk: product.id_produk,
+      title: product.nama_produk,
+      price: Number(product.harga),
+      category: product.kategori,
+      img: product.gambar || '/default-image.jpg',
+      description: product.deskripsi || 'Deskripsi tidak tersedia.',
+      created_at: product.created_at,
+      total_sold: product.total_sold,
+      image: product.image,
+    });
   } catch (error) {
-    console.error("Kesalahan saat mengambil produk:", error);
-    return NextResponse.json(
-      { error: "Gagal mengambil produk", details: error.message },
-      { status: 500 }
-    );
+    console.error('Kesalahan saat mengambil produk:', error);
+    return NextResponse.json({ error: 'Gagal mengambil produk' }, { status: 500 });
   }
 }

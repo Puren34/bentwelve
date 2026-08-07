@@ -1,11 +1,9 @@
 // app/lib/authOptions.ts
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import postgres from "postgres";
 import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt";
-
-const sql = postgres(process.env.DATABASE_URL || "");
+import { prisma } from "@/app/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,9 +20,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const result = await sql`SELECT * FROM users WHERE email = ${credentials.email}`;
-          const user = result[0];
-          console.log("User from DB:", user);
+          const user = await prisma.users.findUnique({
+            where: { email: credentials.email },
+          });
 
           if (!user) {
             console.log("User not found for email:", credentials.email);
@@ -32,8 +30,6 @@ export const authOptions: NextAuthOptions = {
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-          console.log("Provided password:", credentials.password, "Is valid:", isPasswordValid);
-
           if (!isPasswordValid) {
             console.log("Invalid password for email:", credentials.email);
             return null;

@@ -2,12 +2,9 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import postgres from 'postgres';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { Pool } from 'pg';
-
-const sql = postgres(process.env.DATABASE_URL!);
+import { prisma } from '@/app/lib/prisma';
 
 // Schema for validating form data (for create and update)
 const FormSchema = z.object({
@@ -49,10 +46,9 @@ export async function createProduct(prevState: any, formData: FormData) {
 
   try {
     // Insert the new product into the database with image
-    await sql`
-      INSERT INTO public.products (nama_produk, kategori, harga, gambar)
-      VALUES (${name}, ${category}, ${price.toString()}, ${imageUrl})
-    `;
+    await prisma.products.create({
+      data: { nama_produk: name, kategori: category, harga: price, gambar: imageUrl },
+    });
 
     // Revalidate the products page to reflect the new product
     revalidatePath('/dashboard/products');
@@ -95,23 +91,16 @@ export async function updateProduct(id: string, prevState: any, formData: FormDa
       const imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
       
       // Update product with new image
-      await sql`
-        UPDATE public.products
-        SET nama_produk = ${name}, 
-            kategori = ${category}, 
-            harga = ${price.toString()},
-            gambar = ${imageUrl}
-        WHERE id_produk = ${id}
-      `;
+      await prisma.products.update({
+        where: { id_produk: id },
+        data: { nama_produk: name, kategori: category, harga: price, gambar: imageUrl },
+      });
     } else {
       // Update product without changing the image
-      await sql`
-        UPDATE public.products
-        SET nama_produk = ${name}, 
-            kategori = ${category}, 
-            harga = ${price.toString()}
-        WHERE id_produk = ${id}
-      `;
+      await prisma.products.update({
+        where: { id_produk: id },
+        data: { nama_produk: name, kategori: category, harga: price },
+      });
     }
 
     revalidatePath('/dashboard/products');
@@ -124,10 +113,7 @@ export async function updateProduct(id: string, prevState: any, formData: FormDa
 
 export async function deleteProduct(id: string) {
   try {
-    await sql`
-      DELETE FROM public.products
-      WHERE id_produk = ${id}
-    `;
+    await prisma.products.delete({ where: { id_produk: id } });
     revalidatePath('/dashboard/products');
   } catch (error) {
     console.error('Failed to delete product:', error);
@@ -162,10 +148,15 @@ export async function createTransaction(prevState: any, formData: FormData) {
   const { productId, buyerName, totalPrice, date, userId } = validated.data;
 
   try {
-    await sql`
-      INSERT INTO transactions (id_produk, nama_pembeli, total_harga, tanggal, id_user)
-      VALUES (${productId ?? null}, ${buyerName}, ${totalPrice}, ${date}, ${userId ?? null})
-    `;
+    await prisma.transactions.create({
+      data: {
+        id_produk: productId ?? null,
+        nama_pembeli: buyerName,
+        total_harga: totalPrice,
+        tanggal: new Date(date),
+        id_user: userId ?? null,
+      },
+    });
 
     revalidatePath('/dashboard/transactions');
     redirect('/dashboard/transactions');
@@ -174,11 +165,6 @@ export async function createTransaction(prevState: any, formData: FormData) {
     return { message: 'Failed to create transaction.', errors: {} };
   }
 }
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
-});
 
 export async function createUser(formData: FormData) {
   const username = formData.get("username") as string;
@@ -189,34 +175,21 @@ export async function createUser(formData: FormData) {
     throw new Error("All fields are required");
   }
 
-  let client;
   try {
-    client = await pool.connect();
-    console.log("Connected to database, checking email:", email);
-
-    const checkQuery = await client.query(
-      `SELECT email FROM users WHERE email = $1`,
-      [email]
-    );
-    console.log("Query result:", checkQuery);
-
-    if (checkQuery.rows && checkQuery.rows.length > 0) {
+    const existingUser = await prisma.users.findUnique({ where: { email } });
+    if (existingUser) {
       throw new Error("Email already registered");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await client.query(
-      `INSERT INTO users (name, email, password, created_at, role)
-       VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)`,
-      [username, email, hashedPassword, "user"]
-    );
+    await prisma.users.create({
+      data: { name: username, email, password: hashedPassword, role: 'user' },
+    });
     revalidatePath("/");
   } catch (error) {
     console.error("Error creating user:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     throw new Error(`Failed to create user: ${errorMessage}`);
-  } finally {
-    if (client) client.release();
   }
 
   // Pindahkan redirect di luar try-catch
@@ -225,26 +198,12 @@ export async function createUser(formData: FormData) {
 
 export async function deleteTransaction(id: string) {
   "use server";
-  let client;
   try {
-    client = await pool.connect();
-    console.log("Attempting to delete transaction with id:", id); // Log id untuk debugging
-    const result = await client.query(
-      `DELETE FROM transactions WHERE id_transaksi = $1`,
-      [id]
-    );
-    console.log("Delete result:", result); // Log hasil query
-    if (result.rowCount === 0) {
-      throw new Error(`No transaction found with id ${id}`);
-    }
+    await prisma.transactions.delete({ where: { id_transaksi: id } });
     revalidatePath("/dashboard/report");
     redirect("/dashboard/report"); // Redirect hanya jika sukses
   } catch (error) {
     console.error("Failed to delete transaction:", error);
     throw new Error("Failed to delete transaction: " + (error instanceof Error ? error.message : "Unknown error"));
-  } finally {
-    if (client) {
-      await client.release();
-    }
   }
 }

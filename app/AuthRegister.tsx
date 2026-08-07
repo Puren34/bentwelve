@@ -4,7 +4,7 @@
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import Link from "next/link";
 import { useRef, FormEvent, useState } from "react";
-import { createUser } from 'app/lib/actions';
+import { createUser } from '@/app/lib/actions';
 import { useRouter } from 'next/navigation';
 
 const AuthRegister = () => {

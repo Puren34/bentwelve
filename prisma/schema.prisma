@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model expense_history {
+  id                 Int       @id @default(autoincrement())
+  jumlah_pengeluaran Decimal?  @db.Decimal
+  tanggal            DateTime? @db.Date
+  snapshot_date      DateTime  @db.Timestamp(6)
+}
+
+model expenses {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_user            String?  @db.Uuid
+  tanggal            DateTime @db.Date
+  jumlah_pengeluaran Decimal  @db.Decimal
+  keterangan         String?
+  created_at         DateTime @default(now()) @db.Timestamp(6)
+  users              users?   @relation(fields: [id_user], references: [id], onUpdate: NoAction)
+}
+
+model product_history {
+  id            Int      @id @default(autoincrement())
+  id_produk     String?  @db.Uuid
+  nama_produk   String?  @db.VarChar(255)
+  snapshot_date DateTime @db.Timestamp(6)
+}
+
+model products {
+  id_produk         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nama_produk       String              @db.VarChar(255)
+  harga             Decimal             @db.Decimal
+  kategori          String              @db.VarChar(100)
+  gambar            String?
+  image             String?
+  deskripsi         String?
+  total_sold        Int                 @default(0)
+  created_at        DateTime            @default(now()) @db.Timestamp(6)
+  transaction_items transaction_items[]
+  transactions      transactions[]
+}
+
+model transaction_history {
+  id            Int       @id @default(autoincrement())
+  id_transaksi  String?   @db.Uuid
+  total_harga   Decimal?  @db.Decimal
+  tanggal       DateTime? @db.Timestamp(6)
+  snapshot_date DateTime  @db.Timestamp(6)
+}
+
+model transaction_items {
+  id           Int           @id @default(autoincrement())
+  id_transaksi String?       @db.Uuid
+  id_produk    String?       @db.Uuid
+  jumlah       Int
+  products     products?     @relation(fields: [id_produk], references: [id_produk], onUpdate: NoAction)
+  transactions transactions? @relation(fields: [id_transaksi], references: [id_transaksi], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model transactions {
+  id_transaksi      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_produk         String?             @db.Uuid
+  id_user           String?             @db.Uuid
+  nama_pembeli      String              @db.VarChar(255)
+  tanggal           DateTime            @db.Timestamp(6)
+  total_harga       Decimal             @db.Decimal
+  status            String              @default("paid") @db.VarChar(50)
+  created_at        DateTime            @default(now()) @db.Timestamp(6)
+  transaction_items transaction_items[]
+  products          products?           @relation(fields: [id_produk], references: [id_produk], onUpdate: NoAction)
+  users             users?              @relation(fields: [id_user], references: [id], onUpdate: NoAction)
+}
+
+model user_history {
+  id            Int      @id @default(autoincrement())
+  id_user       String?  @db.Uuid
+  snapshot_date DateTime @db.Timestamp(6)
+}
+
+model users {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String         @db.VarChar(255)
+  email        String         @unique
+  password     String
+  role         String         @default("user") @db.VarChar(50)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  expenses     expenses[]
+  transactions transactions[]
+}

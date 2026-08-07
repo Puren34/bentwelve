@@ -1,7 +1,3 @@
-// lib/db.ts
-import { Pool } from 'pg';
-
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+// Backward-compatible database entry point. New code should import `prisma`
+// directly from `@/app/lib/prisma`.
+export { prisma } from '@/app/lib/prisma';

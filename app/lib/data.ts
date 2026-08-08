@@ -10,7 +10,9 @@ export interface Transaction { id_transaksi: string; id_produk: string; nama_pem
 const PAGE_SIZE = 10;
 const searchWhere = (searchTerm = '') => ({ nama_produk: { contains: searchTerm, mode: 'insensitive' as const } });
 const mapProduct = (product: any): Product => ({ id: product.id_produk, name: product.nama_produk, price: Number(product.harga), category: product.kategori, image: product.gambar || '' });
-const toMonth = (date: Date, short = false) => date.toLocaleString('en-US', { month: short ? 'short' : '2-digit', year: short ? undefined : 'numeric', timeZone: 'UTC' }).replace(',', '').replace(' ', short ? '' : '-');
+// RevenueGraph dan ExpensesGraph mengharapkan format YYYY-MM.
+const toMonth = (date: Date) => `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+const toShortMonth = (date: Date) => date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
 
 export async function fetchProducts(searchTerm = '', currentPage = 1) {
   const products = await prisma.products.findMany({ where: searchWhere(searchTerm), orderBy: { created_at: 'desc' }, skip: (currentPage - 1) * PAGE_SIZE, take: PAGE_SIZE });
@@ -55,7 +57,7 @@ export interface MonthlySales { month: string; sales: number; }
 export async function fetchMonthlySales(): Promise<MonthlySales[]> {
   const rows = await prisma.transactions.findMany({ select: { tanggal: true, total_harga: true } });
   const totals = new Map<string, number>();
-  for (const row of rows) { const key = toMonth(row.tanggal, true); totals.set(key, (totals.get(key) || 0) + Number(row.total_harga)); }
+  for (const row of rows) { const key = toShortMonth(row.tanggal); totals.set(key, (totals.get(key) || 0) + Number(row.total_harga)); }
   return [...totals].map(([month, sales]) => ({ month, sales }));
 }
 export async function fetchCardData() {

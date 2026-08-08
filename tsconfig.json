@@ -2,17 +2,21 @@
   "compilerOptions": {
     "ignoreDeprecations": "5.0",
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false, 
+    "strict": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -20,9 +24,14 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["node", "next"] // Tambahkan ini.
+    "types": [
+      "node",
+      "next"
+    ] // Tambahkan ini.
   },
   "include": [
     "next-env.d.ts",
@@ -30,7 +39,11 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.ts",
-    "scripts/seed.js"
-, "app/api/products/detail/[id]/route.js"  ],
-  "exclude": ["node_modules"]
+    "scripts/seed.js",
+    "app/api/products/detail/[id]/route.js",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

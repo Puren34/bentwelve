@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 const USERS = [
   { name: 'Admin Toko', email: 'admin@siweb.test', password: 'admin123', role: 'admin' },
   { name: 'kalpin', email: 'kalpin@example.com', password: '123', role: 'admin' },
-  { name: 'budi', email: 'budi@example.com', password: 'budi', role: 'admin' },
+  { name: 'budi', email: 'budi@example.com', password: 'budi', role: 'user' },
   { name: 'Budi Santoso', email: 'budi@siweb.test', password: 'password123', role: 'user' },
   { name: 'Siti Aminah', email: 'siti@siweb.test', password: 'password123', role: 'user' },
   { name: 'Andi Wijaya', email: 'andi@siweb.test', password: 'password123', role: 'user' },
